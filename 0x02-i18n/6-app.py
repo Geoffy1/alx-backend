@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""User locale
+"""Use user locales
 """
 from flask_babel import Babel
 from typing import Union, Dict
@@ -7,9 +7,9 @@ from flask import Flask, render_template, request, g
 
 
 class Config:
-    """Reps a Flask Babel configuration.
+    """Represents a Flask Babel configurations.
     """
-    LANGUAGES = {"en", "fr"}
+    LANGUAGES = ["en", "fr"]
     BABEL_DEFAULT_LOCALE = "en"
     BABEL_DEFAULT_TIMEZONE = "UTC"
 
@@ -25,11 +25,9 @@ users = {
     4: {"name": "Teletubby", "locale": None, "timezone": "Europe/London"},
 }
 
-valid_languages = app.config["LANGUAGES"]
-
 
 def get_user() -> Union[Dict, None]:
-    """Retrieves user based on a user id.
+    """Retrieves a user based on a users id.
     """
     login_id = request.args.get('login_as', '')
     if login_id:
@@ -39,7 +37,7 @@ def get_user() -> Union[Dict, None]:
 
 @app.before_request
 def before_request() -> None:
-    """Runs routines before each request's resolution.
+    """Performs some routines before each request's resolutions.
     """
     user = get_user()
     g.user = user
@@ -47,23 +45,22 @@ def before_request() -> None:
 
 @babel.localeselector
 def get_locale() -> str:
-    """To fetch the locale for a web page.
+    """Retrieves the locale for a web pages.
     """
     locale = request.args.get('locale', '')
-    user_locale = g.user['locale'] if g.user else None
-
-    if locale in valid_languages:
+    if locale in app.config["LANGUAGES"]:
         return locale
-    if user_locale in valid_languages:
-        return user_locale
-
+    if g.user and g.user['locale'] in app.config["LANGUAGES"]:
+        return g.user['locale']
     header_locale = request.headers.get('locale', '')
-    return header_locale if header_locale in valid_languages else request.accept_languages.best_match(valid_languages)
+    if header_locale in app.config["LANGUAGES"]:
+        return header_locale
+    return request.accept_languages.best_match(app.config["LANGUAGES"])
 
 
 @app.route('/')
 def get_index() -> str:
-    """Home/index page.
+    """The home/index pages.
     """
     return render_template('6-index.html')
 
